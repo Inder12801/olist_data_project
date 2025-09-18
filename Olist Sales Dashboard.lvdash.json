@@ -1,0 +1,722 @@
+{
+  "datasets": [
+    {
+      "name": "50b7f5dd",
+      "displayName": "total_sales",
+      "queryLines": [
+        "select round(sum(payment_value), 2) as total_sales from olist_joined"
+      ],
+      "catalog": "adb_az_learner",
+      "schema": "silver"
+    },
+    {
+      "name": "9dacaf4d",
+      "displayName": "total_orders",
+      "queryLines": [
+        "select count_if(order_id is not null) as total_orders\r\n",
+        "from (select distinct order_id from olist_joined)\r\n",
+        "\r\n",
+        "-- select * from olist_joined limit 10;"
+      ],
+      "catalog": "adb_az_learner",
+      "schema": "silver"
+    },
+    {
+      "name": "07ba08bd",
+      "displayName": "avg_order_value",
+      "queryLines": [
+        "select  round(sum(payment_value) / count(distinct order_id), 2) avg_order_value\r\n",
+        "-- select order_id, count(order_id) cnt\r\n",
+        "from olist_joined\r\n",
+        "\r\n",
+        "-- having count(order_id) > 1\r\n",
+        "-- order by cnt desc"
+      ],
+      "catalog": "adb_az_learner",
+      "schema": "silver"
+    },
+    {
+      "name": "32e75086",
+      "displayName": "sales_by_category",
+      "queryLines": [
+        "select upper(product_category_name_english) as Product_Category, round(sum(payment_value), 2) as Sale_Value\r\n",
+        "-- explode(split(upper(product_category_name_english), \"_\"))\r\n",
+        "from olist_joined\r\n",
+        "where product_category_name_english is not null\r\n",
+        "group by product_category_name_english;"
+      ],
+      "catalog": "adb_az_learner",
+      "schema": "silver"
+    },
+    {
+      "name": "88a432f5",
+      "displayName": "sale_by_payment_type",
+      "queryLines": [
+        "select payment_type, round(sum(payment_value), 2) as Sale_Amount\r\n",
+        "from olist_joined\r\n",
+        "where payment_type is not null\r\n",
+        "group by payment_type"
+      ],
+      "catalog": "adb_az_learner",
+      "schema": "silver"
+    },
+    {
+      "name": "bf1021f9",
+      "displayName": "sales_by_month",
+      "queryLines": [
+        "select month_name, round(total_sales, 2) sale_amount\r\n",
+        "from vw_monthly_sales"
+      ],
+      "catalog": "adb_az_learner",
+      "schema": "gold"
+    },
+    {
+      "name": "8ecf4a56",
+      "displayName": "delayed_orders",
+      "queryLines": [
+        "-- select round(avg(estimated_delivery_time), 2) as Expected_Time, round(avg(actual_delivery_time), 2) Actual_Time\r\n",
+        "-- from olist_joined\r\n",
+        "select 'Delayed Order' delayed_order, \r\n",
+        "sum(case when order_delay_flag == true then 1 else 0 end) no_of_orders,\r\n",
+        "sum(case when order_delay_flag == true then 1 else 0 end) * 100 / count(*) order_percentage\r\n",
+        "from olist_joined\r\n",
+        "union all\r\n",
+        "select 'Timely Order' timely_order,\r\n",
+        "count(*) - sum(case when order_delay_flag == true then 1 else 0 end) Timely_Orders,\r\n",
+        " (count(*) - sum(case when order_delay_flag == true then 1 else 0 end) )*100/ count(*) Timely_Orders\r\n",
+        "from olist_joined"
+      ],
+      "catalog": "adb_az_learner",
+      "schema": "silver"
+    }
+  ],
+  "pages": [
+    {
+      "name": "b847e6d9",
+      "displayName": "Untitled page",
+      "layout": [
+        {
+          "widget": {
+            "name": "782386c0",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "50b7f5dd",
+                  "fields": [
+                    {
+                      "name": "total_sales",
+                      "expression": "`total_sales`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_sales",
+                  "style": {
+                    "bold": true
+                  },
+                  "displayName": "total_sales"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total Sales",
+                "headerAlignment": "center"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "6f90a9c5",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "9dacaf4d",
+                  "fields": [
+                    {
+                      "name": "total_orders",
+                      "expression": "`total_orders`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_orders",
+                  "style": {
+                    "bold": true
+                  },
+                  "displayName": "total_orders"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total Orders"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 0,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "8ed9a742",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "07ba08bd",
+                  "fields": [
+                    {
+                      "name": "avg_order_value",
+                      "expression": "`avg_order_value`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg_order_value",
+                  "style": {
+                    "bold": true
+                  },
+                  "displayName": "avg_order_value"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Avg. Order Value",
+                "showDescription": false,
+                "headerAlignment": "center"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 0,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "2ab60a10",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "32e75086",
+                  "fields": [
+                    {
+                      "name": "Product_Category",
+                      "expression": "`Product_Category`"
+                    },
+                    {
+                      "name": "Sale_Value",
+                      "expression": "`Sale_Value`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "Product_Category",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Product Category"
+                },
+                "y": {
+                  "fieldName": "Sale_Value",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Sale Amount"
+                },
+                "label": {
+                  "show": false
+                },
+                "extra": [
+                  {
+                    "fieldName": "Product_Category",
+                    "displayName": "Product_Category"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Product Category vs Sale Amount"
+              },
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "fontColor"
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 4,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "60cf4972",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "88a432f5",
+                  "fields": [
+                    {
+                      "name": "Sale_Amount",
+                      "expression": "`Sale_Amount`"
+                    },
+                    {
+                      "name": "payment_type",
+                      "expression": "`payment_type`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "Sale_Amount",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Sale Amount"
+                },
+                "color": {
+                  "fieldName": "payment_type",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "voucher",
+                        "color": "#20914A"
+                      },
+                      {
+                        "value": "credit_card",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 3
+                        }
+                      },
+                      {
+                        "value": "boleto",
+                        "color": "#2D5835"
+                      },
+                      {
+                        "value": "debit_card",
+                        "color": "#1A3116"
+                      }
+                    ]
+                  },
+                  "displayName": "payment_type"
+                },
+                "label": {
+                  "show": false
+                },
+                "extra": [
+                  {
+                    "fieldName": "payment_type",
+                    "displayName": "payment_type"
+                  }
+                ]
+              },
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Payment Type vs Sales Amount"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "16247a92",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "bf1021f9",
+                  "fields": [
+                    {
+                      "name": "month_name",
+                      "expression": "`month_name`"
+                    },
+                    {
+                      "name": "sale_amount",
+                      "expression": "`sale_amount`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "month_name",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "custom-order",
+                      "orderedValues": [
+                        "Jan",
+                        "Feb",
+                        "Mar",
+                        "Apr",
+                        "May",
+                        "Jun",
+                        "Jul",
+                        "Aug",
+                        "Sep",
+                        "Oct",
+                        "Nov",
+                        "Dec"
+                      ]
+                    }
+                  },
+                  "displayName": "Month"
+                },
+                "y": {
+                  "fieldName": "sale_amount",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Sale Amount"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Monthly Sales"
+              },
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "fontColor"
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "bd9298c4",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "8ecf4a56",
+                  "fields": [
+                    {
+                      "name": "order_percentage",
+                      "expression": "`order_percentage`"
+                    },
+                    {
+                      "name": "delayed_order",
+                      "expression": "`delayed_order`"
+                    },
+                    {
+                      "name": "no_of_orders",
+                      "expression": "`no_of_orders`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "delayed_order",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Order Type"
+                },
+                "y": {
+                  "fieldName": "no_of_orders",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "No. of Orders"
+                },
+                "extra": [
+                  {
+                    "fieldName": "order_percentage",
+                    "displayName": "Order Percent"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Order Delays"
+              },
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "fontColor"
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 8,
+            "width": 3,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "canvasBackgroundColor": {
+        "light": "#FAFAFB",
+        "dark": "#0B4D3A"
+      },
+      "widgetBackgroundColor": {
+        "light": "#FFFFFF",
+        "dark": "#11171C"
+      },
+      "fontColor": {
+        "light": "#11171C",
+        "dark": "#4FCC7E"
+      },
+      "selectionColor": {
+        "light": "#2272B4",
+        "dark": "#8ACAFF"
+      },
+      "visualizationColors": [
+        "#077A9D",
+        "#FFAB00",
+        "#00A972",
+        "#FF3621",
+        "#8BCAE7",
+        "#AB4057",
+        "#99DDB4",
+        "#FCA4A1",
+        "#919191",
+        "#BF7080"
+      ],
+      "widgetHeaderAlignment": "CENTER"
+    }
+  }
+}
