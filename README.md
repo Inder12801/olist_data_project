@@ -29,6 +29,9 @@ following the medallion (Bronze-Silver-Gold) architecture pattern.
 - Databricks Dashboards are built to visualize trends, metrics, and performance indicators sourced from gold-layer analytical datasets, enabling real-time ecommerce insights
   for stakeholders.
 
+  <img width="4000" height="2089" alt="Olist Sales Dashboard 2025-09-18 12_49-1" src="https://github.com/user-attachments/assets/511cb862-fe17-4fad-ba47-e57203b1c78c" />
+
+
 ---
 
 ## Key Highlights
