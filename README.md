@@ -4,6 +4,9 @@
 This project demonstrates a robust, end-to-end data pipeline for ecommerce analytics using Azure Data Factory, ADLS Gen2, Azure Key Vault, Azure Databricks, and Databricks SQL,
 following the medallion (Bronze-Silver-Gold) architecture pattern.
 
+<img width="7844" height="2217" alt="olist_data_architecture" src="https://github.com/user-attachments/assets/247bd7ee-435e-4cf8-a7de-dc99f1d34549" />
+
+
 ## Pipeline Steps
 
 ### 1. Ingestion from GitHub using Azure Data Factory (ADF)
